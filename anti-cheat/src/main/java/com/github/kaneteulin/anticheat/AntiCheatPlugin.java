@@ -31,12 +31,27 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
     private InventoryChecks inventory;
     private HighRiskChecks highRisk;
 
+    private EntityHider hider;
+
+    /** 월드를 불러오기 전: 월드별 Anti-Xray, 생성 시드, 소리 범위 설정 */
     @Override
-    public void onEnable() {
+    public void onLoad() {
+        loadConfigWithDefaults();
+        ServerSettings.onLoad(this);
+    }
+
+    private void loadConfigWithDefaults() {
         saveDefaultConfig();
+        reloadConfig();
         // 업데이트로 새 설정 항목이 생기면 기존 값은 그대로 두고 빠진 항목만 추가
         getConfig().options().copyDefaults(true);
         saveConfig();
+    }
+
+    @Override
+    public void onEnable() {
+        loadConfigWithDefaults();
+        ServerSettings.onEnable(this);
         violations = new Violations(this);
 
         combat = new CombatChecks(this);
@@ -49,11 +64,27 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
         highRisk = new HighRiskChecks(this);
         getServer().getPluginManager().registerEvents(highRisk, this);
 
+        // 정보 숨기기: 체력, 벽 너머 엔티티
+        PacketCounter.hideHealth = ServerSettings.option(this, "health");
         for (Player player : Bukkit.getOnlinePlayers()) {
+            PacketCounter.PLAYER_IDS.add(player.getEntityId());
             PacketCounter.inject(player, data(player));
+        }
+        if (ServerSettings.option(this, "entity-hiding")) {
+            hider = new EntityHider(this);
+            getServer().getPluginManager().registerEvents(hider, this);
+            getServer().getScheduler().runTaskTimer(this, hider, 20L, 3L);
         }
 
         getServer().getScheduler().runTaskTimer(this, this::everySecond, 20L, 20L);
+    }
+
+    @Override
+    public void onDisable() {
+        if (hider != null) {
+            hider.showAll();
+        }
+        PacketCounter.PLAYER_IDS.clear();
     }
 
     public PlayerData data(Player player) {
@@ -85,12 +116,14 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onJoin(PlayerJoinEvent event) {
+        PacketCounter.PLAYER_IDS.add(event.getPlayer().getEntityId());
         PacketCounter.inject(event.getPlayer(), data(event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onQuit(PlayerQuitEvent event) {
         players.remove(event.getPlayer().getUniqueId());
+        PacketCounter.PLAYER_IDS.remove(event.getPlayer().getEntityId());
     }
 
     @Override

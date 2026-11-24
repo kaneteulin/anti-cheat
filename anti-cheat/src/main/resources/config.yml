@@ -17,6 +17,21 @@ alerts:
   # 같은 플레이어, 같은 검사의 알림 사이 최소 간격(초)
   cooldown-seconds: 3
 
+# 정보 이용형 치트 대응 (X-ray, ESP 등). 감지가 아니라 서버가 정보를 덜 보내는 방식
+info-protection:
+  # X-ray, 상자 ESP: 땅속 광석과 상자류를 가짜 광석 사이에 숨김 (Paper Anti-Xray)
+  anti-xray: true
+  # 플레이어/몹/아이템 ESP, 트레이서, 이름표 투시: 벽에 완전히 가려진 대상의 정보를 보내지 않음
+  entity-hiding: true
+  # 체력 표시: 다른 플레이어의 정확한 체력과 흡수 체력을 숨김
+  health: true
+  # 장비 엿보기: 다른 플레이어에게 보이는 아이템의 인챈트, 내구도 등을 숨김 (Paper 아이템 정보 숨기기)
+  item-obfuscation: true
+  # 시드 크래킹: 구조물과 광석·나무 생성 시드를 월드 시드와 다르게 (새로 생성되는 지형부터)
+  seeds: true
+  # 소리 추적: 위더 소환, 엔드 포털, 드래곤 죽음 소리가 월드 전체가 아니라 64칸 안에서만 들림
+  sounds: true
+
 # 위반 점수가 1초마다 곱해지는 값 (0.97 이면 약 23초마다 절반으로 줄어듦)
 decay-per-second: 0.97
 
