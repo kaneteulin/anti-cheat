@@ -141,8 +141,38 @@ final class EntityHider implements Listener, Runnable {
         return !(target instanceof Player player && player.getGameMode() == GameMode.SPECTATOR);
     }
 
+    /**
+     * 대상이 보이는지. 핑 때문에 플레이어 화면은 서버보다 조금 앞서 있으므로 넉넉하게 판단한다:
+     * 대상 상자를 0.5칸 키우고, 눈 위치뿐 아니라 좌우로 0.7칸, 위로 0.5칸 옮긴 위치에서도 확인한다
+     * (모퉁이에서 고개를 내밀 때 늦게 나타나지 않도록).
+     */
+    private static boolean isVisible(ServerLevel level, Vector eye, BoundingBox original) {
+        BoundingBox box = original.clone().expand(0.5);
+        if (isVisibleFrom(level, eye, box)) {
+            return true;
+        }
+        Vector toTarget = box.getCenter().subtract(eye);
+        Vector side = new Vector(-toTarget.getZ(), 0, toTarget.getX());
+        if (side.lengthSquared() < 1e-6) {
+            return false;
+        }
+        side.normalize().multiply(0.7);
+        for (Vector from : List.of(eye.clone().add(side), eye.clone().subtract(side), eye.clone().add(new Vector(0, 0.5, 0)))) {
+            if (!insideSolid(level, from) && isVisibleFrom(level, from, box)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** 옮긴 눈 위치가 벽 안이면 그 벽을 꿰뚫어 보게 되므로 쓰지 않음 */
+    private static boolean insideSolid(ServerLevel level, Vector point) {
+        BlockPos pos = BlockPos.containing(point.getX(), point.getY(), point.getZ());
+        return !level.isLoaded(pos) || level.getBlockState(pos).isSolidRender();
+    }
+
     /** 대상 상자의 가운데나 꼭짓점 중 하나라도 불투명 블록에 막히지 않고 보이는지 */
-    private static boolean isVisible(ServerLevel level, Vector eye, BoundingBox box) {
+    private static boolean isVisibleFrom(ServerLevel level, Vector eye, BoundingBox box) {
         Vector center = box.getCenter();
         if (rayClear(level, eye, center)) {
             return true;
@@ -206,7 +236,8 @@ final class EntityHider implements Listener, Runnable {
             if (!level.isLoaded(pos)) {
                 return true; // 불러오지 않은 곳은 판단하지 않음 (보이는 것으로)
             }
-            if (level.getBlockState(pos).canOcclude()) {
+            // 꽉 찬 불투명 블록만 시야를 막음 (반 블록, 계단, 울타리, 문, 다락문, 카펫, 눈 층 등은 너머가 보이므로 통과)
+            if (level.getBlockState(pos).isSolidRender()) {
                 return false;
             }
         }

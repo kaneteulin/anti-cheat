@@ -17,6 +17,16 @@ alerts:
   # 같은 플레이어, 같은 검사의 알림 사이 최소 간격(초)
   cooldown-seconds: 3
 
+# 서버 백업 (월드 전체, 서버 설정, AntiCheat 설정·로그를 zip 으로)
+backup:
+  enabled: true
+  # 백업 간격(시간)
+  interval-hours: 4
+  # 남겨 둘 백업 개수. 넘으면 가장 오래된 것부터 지움 (0 = 지우지 않고 모두 보관)
+  keep: 0
+  # 백업 폴더 (서버 폴더 기준)
+  folder: backups
+
 # 정보 이용형 치트 대응 (X-ray, ESP 등). 감지가 아니라 서버가 정보를 덜 보내는 방식
 info-protection:
   # X-ray, 상자 ESP: 땅속 광석과 상자류를 가짜 광석 사이에 숨김 (Paper Anti-Xray)

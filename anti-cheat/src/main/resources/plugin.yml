@@ -8,8 +8,8 @@ description: 핵 의심 행동을 감지해 관리자에게 알립니다 (처벌
 
 commands:
   anticheat:
-    description: 안티치트 알림 켜기/끄기, 위반 점수 확인, 설정 다시 읽기
-    usage: /anticheat <alerts|vl <닉네임>|reload>
+    description: 안티치트 알림 켜기/끄기, 위반 점수 확인, 설정 다시 읽기, 지금 백업
+    usage: /anticheat <alerts|vl <닉네임>|reload|backup>
     aliases: [ ac ]
 
 permissions:

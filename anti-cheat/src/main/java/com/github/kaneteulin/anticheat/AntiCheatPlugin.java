@@ -32,6 +32,7 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
     private HighRiskChecks highRisk;
 
     private EntityHider hider;
+    private Backup backup;
 
     /** 월드를 불러오기 전: 월드별 Anti-Xray, 생성 시드, 소리 범위 설정 */
     @Override
@@ -76,7 +77,10 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
             getServer().getScheduler().runTaskTimer(this, hider, 20L, 3L);
         }
 
-        violations.tickDate(); // 오늘 날짜 로그 폴더
+        backup = new Backup(this);
+        backup.schedule();
+
+        violations.tickDate(); // 오늘 날짜 로그 파일
         getServer().getScheduler().runTaskTimer(this, this::everySecond, 20L, 20L);
     }
 
@@ -167,7 +171,14 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
                 reloadConfig();
                 sender.sendMessage(Component.text("설정을 다시 읽었습니다.", NamedTextColor.GREEN));
             }
-            default -> sender.sendMessage("사용법: /" + label + " <alerts|vl <닉네임>|reload>");
+            case "backup" -> {
+                if (backup.start()) {
+                    sender.sendMessage(Component.text("백업을 시작했습니다. 결과는 서버 콘솔에 표시됩니다.", NamedTextColor.GREEN));
+                } else {
+                    sender.sendMessage(Component.text("이전 백업이 아직 진행 중입니다.", NamedTextColor.RED));
+                }
+            }
+            default -> sender.sendMessage("사용법: /" + label + " <alerts|vl <닉네임>|reload|backup>");
         }
         return true;
     }
@@ -176,7 +187,7 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         List<String> result = new ArrayList<>();
         if (args.length == 1) {
-            for (String option : List.of("alerts", "vl", "reload")) {
+            for (String option : List.of("alerts", "vl", "reload", "backup")) {
                 if (option.startsWith(args[0].toLowerCase(Locale.ROOT))) result.add(option);
             }
         } else if (args.length == 2 && args[0].equalsIgnoreCase("vl")) {
