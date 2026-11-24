@@ -9,7 +9,7 @@ alerts:
   chat: false
   # 서버 콘솔에 알림
   console: false
-  # plugins/AntiCheat/violations.log 에 기록
+  # plugins/AntiCheat/violations.log 에 기록 (항상 암호화됨)
   log-file: true
   # true: 기준(threshold) 미만이어도 의심 행동을 모두 기록 (오탐 테스트용)
   # false: 기준 이상일 때만 기록

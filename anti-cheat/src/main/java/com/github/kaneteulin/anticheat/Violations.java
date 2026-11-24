@@ -8,6 +8,9 @@ import org.bukkit.entity.Player;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.util.List;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
@@ -124,13 +127,37 @@ public final class Violations {
 
     private void log(String line) {
         File file = new File(plugin.getDataFolder(), "violations.log");
+        String record = LocalDateTime.now().format(TIME) + " " + line;
         try {
+            // 항상 암호화 (설정으로 끌 수 없음). 암호화할 수 없으면 평문으로 남기지 않음
+            LogCipher logCipher = cipher();
+            if (logCipher == null) {
+                return;
+            }
+            List<String> lines = logCipher.encrypt(record);
             file.getParentFile().mkdirs();
-            Files.writeString(file.toPath(), LocalDateTime.now().format(TIME) + " " + line + System.lineSeparator(),
-                    StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        } catch (IOException e) {
+            Files.write(file.toPath(), lines, StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException | GeneralSecurityException e) {
             plugin.getLogger().log(Level.WARNING, "Failed to write violations.log", e);
         }
+    }
+
+    private LogCipher cipher;
+    private boolean cipherFailed;
+
+    private LogCipher cipher() {
+        if (cipher == null && !cipherFailed) {
+            try (InputStream key = plugin.getResource("log-public.key")) {
+                if (key == null) {
+                    throw new IOException("log-public.key not found in plugin jar");
+                }
+                cipher = new LogCipher(key);
+            } catch (IOException | GeneralSecurityException e) {
+                cipherFailed = true;
+                plugin.getLogger().log(Level.SEVERE, "로그 암호화 키를 읽지 못해 violations.log 를 기록하지 않습니다.", e);
+            }
+        }
+        return cipher;
     }
 
     /** 1초마다: 점수를 조금씩 줄인다 */

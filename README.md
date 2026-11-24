@@ -21,6 +21,9 @@ Paper 서버와 AntiCheat(Releases 의 최신 버전)이 자동으로 설치되�
 
 - 각 검사는 의심 행동을 발견할 때마다 **위반 점수(VL)** 를 올립니다.
 - 점수는 시간이 지나면 조금씩 줄어들고, 검사마다 정한 기준(threshold) 이상이 되면 알립니다.
+- `violations.log` 는 **항상 암호화**되어 서버 관리자나 플레이어가 열어도 읽을 수 없습니다 (설정으로 끌 수 없음).
+  플러그인에는 잠그는 키(공개 키 `log-public.key`)만 들어 있고, 여는 키(비밀 키)는 저장소 밖에 따로 보관합니다.
+  해독: `java anti-cheat/tools/DecryptLog.java <violations.log> <비밀 키 파일> [출력 파일]`
 - **기본 설정은 오탐 테스트용**입니다: 채팅·콘솔 알림 없이, 기준 미만까지 모든 의심 행동을 `plugins/AntiCheat/violations.log` 에만 기록합니다.
   `config.yml` 의 `alerts.chat`, `alerts.console` 을 `true` 로, `alerts.log-all` 을 `false` 로 바꾸면 기준 이상일 때만 OP 채팅·콘솔·로그에 알립니다.
 - 이동 검사는 서버 시간이 아니라 **플레이어가 보낸 이동 정보 단위**로 세기 때문에, 컴퓨터가 잠깐 멈추거나 렉이 걸려도 잘못 잡히지 않도록 했습니다.
