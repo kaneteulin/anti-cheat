@@ -1,0 +1,7 @@
+# 테스트용 서버 폴더 - 저장소에 올리지 않음
+.server/
+
+# 빌드 결과물 (GitHub Actions가 Releases에 올림)
+anti-cheat/build/
+
+*.log

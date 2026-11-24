@@ -1,0 +1,98 @@
+# AntiCheat 설정
+#
+# 각 검사는 의심 행동을 발견할 때마다 위반 점수(VL)를 올립니다.
+# 점수는 시간이 지나면 조금씩 줄어들고, threshold 이상이 되면 관리자에게 알립니다.
+# 처벌(킥, 밴, 되돌리기)은 하지 않습니다.
+
+alerts:
+  # OP(anticheat.alerts 권한) 채팅으로 알림
+  chat: false
+  # 서버 콘솔에 알림
+  console: false
+  # plugins/AntiCheat/violations.log 에 기록
+  log-file: true
+  # true: 기준(threshold) 미만이어도 의심 행동을 모두 기록 (오탐 테스트용)
+  # false: 기준 이상일 때만 기록
+  log-all: true
+  # 같은 플레이어, 같은 검사의 알림 사이 최소 간격(초)
+  cooldown-seconds: 3
+
+# 위반 점수가 1초마다 곱해지는 값 (0.97 이면 약 23초마다 절반으로 줄어듦)
+decay-per-second: 0.97
+
+checks:
+  # ---- 오탐 위험 중간 ----
+  reach:          # 공격 거리
+    enabled: true
+    threshold: 2
+  fly:            # 공중에 떠 있기 / 계속 상승
+    enabled: true
+    threshold: 3
+  jump:           # 점프 높이 초과 / 벽타기
+    enabled: true
+    threshold: 2
+  nofall:         # 공중에서 땅에 닿았다고 속이기
+    enabled: true
+    threshold: 3
+  fastbreak:      # 블록을 정상보다 빨리 캠
+    enabled: true
+    threshold: 3
+  nuker:          # 짧은 시간에 너무 많은 블록을 캠
+    enabled: true
+    threshold: 2
+  autoclicker:    # 초당 클릭 수
+    enabled: true
+    threshold: 1
+    max-cps: 25
+
+  # ---- 오탐 위험 낮음 ----
+  invmove:        # 인벤토리를 연 채 걷기 / 시선 돌리기
+    enabled: true
+    threshold: 2
+  criticals:      # 점프 없이 치명타
+    enabled: true
+    threshold: 3
+  wallhit:        # 벽 너머의 대상을 공격
+    enabled: true
+    threshold: 3
+  wallinteract:   # 벽 너머의 상자 열기
+    enabled: true
+    threshold: 3
+  autototem:      # 토템이 터지자마자 사람이 불가능한 속도로 다시 장착
+    enabled: true
+    threshold: 1
+  invclick:       # 인벤토리 클릭 속도
+    enabled: true
+    threshold: 2
+    max-per-second: 40
+  fastbow:        # 활 연사
+    enabled: true
+    threshold: 2
+    max-per-second: 10
+  packetspam:     # 초당 패킷 수
+    enabled: true
+    threshold: 1
+    max-per-second: 500
+
+  # ---- 오탐 위험 높음 (정상 플레이에서도 걸릴 수 있음) ----
+  timer:          # 게임 속도를 올림 (클라이언트 틱이 50ms 보다 빠름)
+    enabled: true
+    threshold: 3
+  speed:          # 이동 속도 초과
+    enabled: true
+    threshold: 3
+  velocity:       # 넉백을 받아도 밀려나지 않음
+    enabled: true
+    threshold: 3
+  killaura:       # 보지 않는 대상 공격, 동시에 여러 대상 공격
+    enabled: true
+    threshold: 3
+  elytra:         # 겉날개로 폭죽 없이 상승, 비정상 속도, 공중 정지
+    enabled: true
+    threshold: 2
+  phase:          # 블록 통과
+    enabled: true
+    threshold: 3
+  scaffold:       # 보지 않는 면에 블록 설치, 발밑에 너무 빨리 설치
+    enabled: true
+    threshold: 3

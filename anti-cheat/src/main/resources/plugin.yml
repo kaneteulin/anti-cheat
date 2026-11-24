@@ -1,0 +1,24 @@
+# Copyright (c) 2026 kaneteulin. All rights reserved. 비상업적 사용만 허용 - LICENSE.md 참고
+name: AntiCheat
+main: com.github.kaneteulin.anticheat.AntiCheatPlugin
+api-version: '26.3'
+version: ${version}
+authors: [ kaneteulin ]
+description: 핵 의심 행동을 감지해 관리자에게 알립니다 (처벌 없음)
+
+commands:
+  anticheat:
+    description: 안티치트 알림 켜기/끄기, 위반 점수 확인, 설정 다시 읽기
+    usage: /anticheat <alerts|vl <닉네임>|reload>
+    aliases: [ ac ]
+
+permissions:
+  anticheat.alerts:
+    description: 핵 의심 알림 받기
+    default: op
+  anticheat.admin:
+    description: /anticheat 명령어 사용
+    default: op
+  anticheat.bypass:
+    description: 모든 검사에서 제외
+    default: false
