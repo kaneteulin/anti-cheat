@@ -14,6 +14,7 @@ import java.util.List;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -125,14 +126,40 @@ public final class Violations {
         }
     }
 
+    private LocalDate logDate;
+
+    /** 날짜별 로그 파일: plugins/AntiCheat/logs/violations-2026-11-24.log */
+    File logFile(LocalDate date) {
+        return new File(plugin.getDataFolder(), "logs/violations-" + date + ".log");
+    }
+
+    /** 1초마다 호출: 날짜가 바뀌면(자정) 그날의 빈 로그 파일을 바로 만든다 */
+    void tickDate() {
+        File file = logFile(LocalDate.now());
+        if (!file.exists()) {
+            try {
+                file.getParentFile().mkdirs();
+                file.createNewFile();
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Failed to create " + file, e);
+            }
+        }
+    }
+
     private void log(String line) {
-        File file = new File(plugin.getDataFolder(), "violations.log");
-        String record = LocalDateTime.now().format(TIME) + " " + line;
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate date = now.toLocalDate();
+        File file = logFile(date);
+        String record = now.format(TIME) + " " + line;
         try {
             // 항상 암호화 (설정으로 끌 수 없음). 암호화할 수 없으면 평문으로 남기지 않음
             LogCipher logCipher = cipher();
             if (logCipher == null) {
                 return;
+            }
+            if (!date.equals(logDate)) {
+                logDate = date;
+                logCipher.startNewFile(); // 새 날짜 파일에는 해독용 KEY 줄을 다시 씀
             }
             List<String> lines = logCipher.encrypt(record);
             file.getParentFile().mkdirs();

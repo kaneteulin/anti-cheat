@@ -76,6 +76,7 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
             getServer().getScheduler().runTaskTimer(this, hider, 20L, 3L);
         }
 
+        violations.tickDate(); // 오늘 날짜 로그 폴더
         getServer().getScheduler().runTaskTimer(this, this::everySecond, 20L, 20L);
     }
 
@@ -96,6 +97,7 @@ public final class AntiCheatPlugin extends JavaPlugin implements Listener {
     }
 
     private void everySecond() {
+        violations.tickDate();
         int maxPackets = violations.check("packetspam").getInt("max-per-second", 500);
 
         for (Player player : Bukkit.getOnlinePlayers()) {

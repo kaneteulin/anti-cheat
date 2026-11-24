@@ -38,7 +38,12 @@ final class LogCipher {
         publicKey = KeyFactory.getInstance("RSA").generatePublic(new X509EncodedKeySpec(Base64.getDecoder().decode(base64)));
     }
 
-    /** 기록 한 줄을 암호화한 로그 줄들 (이번 실행의 첫 기록이면 KEY 줄 포함) */
+    /** 새 로그 파일로 넘어갈 때: 다음 기록부터 새 키를 만들어 KEY 줄을 다시 쓴다 (파일마다 따로 해독 가능) */
+    void startNewFile() {
+        sessionKey = null;
+    }
+
+    /** 기록 한 줄을 암호화한 로그 줄들 (이번 실행 또는 이 파일의 첫 기록이면 KEY 줄 포함) */
     List<String> encrypt(String line) throws GeneralSecurityException {
         List<String> out = new ArrayList<>(2);
 

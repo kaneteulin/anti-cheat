@@ -15,8 +15,8 @@ import java.util.Base64;
 /**
  * 암호화된 violations.log 해독 도구.
  *
- * 사용법: java DecryptLog.java <violations.log> <비밀 키 파일> [출력 파일]
- * (출력 파일을 주지 않으면 화면에 출력)
+ * 사용법: java DecryptLog.java <로그 파일 또는 logs 폴더> <비밀 키 파일> [출력 파일]
+ * (폴더를 주면 안의 .log 파일을 모두 해독, 출력 파일을 주지 않으면 화면에 출력)
  */
 public class DecryptLog {
 
@@ -34,9 +34,34 @@ public class DecryptLog {
                 ? new PrintStream(Files.newOutputStream(Path.of(args[2])), true, StandardCharsets.UTF_8)
                 : new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
+        // 폴더를 주면 그 안의 .log 파일을 날짜 순서대로 모두 해독
+        Path input = Path.of(args[0]);
+        java.util.List<Path> files = new java.util.ArrayList<>();
+        if (Files.isDirectory(input)) {
+            try (var stream = Files.list(input)) {
+                stream.filter(p -> p.toString().endsWith(".log")).sorted().forEach(files::add);
+            }
+        } else {
+            files.add(input);
+        }
+
+        int failed = 0;
+        for (Path file : files) {
+            if (files.size() > 1) {
+                out.println("=== " + file.getFileName() + " ===");
+            }
+            failed += decrypt(file, privateKey, out);
+        }
+
+        if (failed > 0) {
+            System.err.println(failed + "줄을 해독하지 못했습니다 (다른 키로 암호화되었거나 파일이 손상됨).");
+        }
+    }
+
+    private static int decrypt(Path file, PrivateKey privateKey, PrintStream out) throws Exception {
         SecretKey session = null;
         int lineNumber = 0, failed = 0;
-        for (String line : Files.readAllLines(Path.of(args[0]), StandardCharsets.UTF_8)) {
+        for (String line : Files.readAllLines(file, StandardCharsets.UTF_8)) {
             lineNumber++;
             try {
                 if (line.startsWith("KEY ")) {
@@ -59,9 +84,6 @@ public class DecryptLog {
                 out.println("[" + lineNumber + "번째 줄 해독 실패: " + e.getMessage() + "]");
             }
         }
-
-        if (failed > 0) {
-            System.err.println(failed + "줄을 해독하지 못했습니다 (다른 키로 암호화되었거나 파일이 손상됨).");
-        }
+        return failed;
     }
 }
