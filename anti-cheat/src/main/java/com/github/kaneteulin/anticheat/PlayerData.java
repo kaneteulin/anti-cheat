@@ -50,6 +50,8 @@ public final class PlayerData {
     int highInvClickSeconds;
     /** 인벤토리(상자 포함)가 열려 있다고 판단한 시각, 0 이면 닫힘 */
     long inventoryOpenSince;
+    /** 마지막 인벤토리 클릭 시각 (자기 인벤토리는 열림/닫힘을 서버가 모르므로 이것으로 판단) */
+    long lastInvClick;
     int invMoveCount;
     int invRotateCount;
     long resurrectAt;

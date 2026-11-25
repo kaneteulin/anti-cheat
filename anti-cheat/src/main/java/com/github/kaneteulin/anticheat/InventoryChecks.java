@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityResurrectEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
@@ -44,11 +45,13 @@ public final class InventoryChecks implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getWhoClicked() instanceof Player player)) {
+        // 크리에이티브의 블록 집기(휠 클릭) 등은 인벤토리를 닫은 채로도 발생하므로 "열림"으로 보지 않는다
+        if (!(event.getWhoClicked() instanceof Player player) || event instanceof InventoryCreativeEvent) {
             return;
         }
         PlayerData data = plugin.data(player);
         long now = System.currentTimeMillis();
+        data.lastInvClick = now;
 
         if (data.inventoryOpenSince == 0) {
             data.inventoryOpenSince = now; // 자기 인벤토리: 첫 클릭부터 열린 것으로 봄

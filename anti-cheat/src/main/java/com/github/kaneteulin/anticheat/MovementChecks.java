@@ -10,6 +10,7 @@ import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.InventoryType;
 import io.papermc.paper.event.entity.EntityKnockbackEvent;
 import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -67,6 +68,17 @@ public final class MovementChecks implements Listener {
             return;
         }
 
+        // 착지 순간의 이동 정보는 움직임이 작으면 서버 이벤트로 오지 않을 때가 있다.
+        // 그러면 착지를 못 보고 다음 점프를 공중에서 떠오른 것으로 오해하므로,
+        // 올라가는 중이고 점프 한 번 높이(0.42칸) 바로 아래가 땅이면 거기서 점프한 것으로 본다.
+        // 공중 점프 핵은 그 아래에 땅이 없으므로 여전히 잡힌다.
+        if (dy > 0 && !data.bounce) {
+            Location jumpStart = to.clone().subtract(0, 0.42 + 0.1 * Physics.jumpBoost(player), 0);
+            if (Physics.grounded(jumpStart)) {
+                data.resetAir(jumpStart.getY());
+            }
+        }
+
         data.airMoves++;
         data.maxY = Math.max(data.maxY, to.getY());
 
@@ -110,7 +122,14 @@ public final class MovementChecks implements Listener {
 
     /** 인벤토리 이동: 창이 열린 채 걷거나 시선을 돌림 (바닐라에서는 둘 다 불가능) */
     private void checkInventoryMove(Player player, PlayerData data, Location from, Location to) {
-        if (data.inventoryOpenSince == 0 || System.currentTimeMillis() - data.inventoryOpenSince < 500) {
+        long now = System.currentTimeMillis();
+        // 자기 인벤토리(E 키)는 서버가 열림/닫힘을 모른다. 닫힘 신호를 놓치면 "열림"이 계속 남으므로,
+        // 상자 같은 서버 창이 아니면 최근 2초 안에 클릭했을 때만 열린 것으로 본다
+        if (data.inventoryOpenSince != 0 && player.getOpenInventory().getType() == InventoryType.CRAFTING
+                && now - data.lastInvClick > 2000) {
+            data.inventoryOpenSince = 0;
+        }
+        if (data.inventoryOpenSince == 0 || now - data.inventoryOpenSince < 500) {
             data.invMoveCount = 0;
             data.invRotateCount = 0;
             return;
