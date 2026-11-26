@@ -69,6 +69,8 @@ public final class PlayerData {
     long elytraBoostUntil;
     long lastAttackAt;
     int lastAttackTarget;
+    /** 마지막 공격 대상의 수평 방향 (눈 기준) */
+    org.bukkit.util.Vector lastAttackDirection;
     final Deque<Long> bridgePlaces = new ArrayDeque<>();
 
     /** 타이머 검사 상태. 네트워크 스레드와 서버 스레드가 함께 쓰므로 동기화한다 */

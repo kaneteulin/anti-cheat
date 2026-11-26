@@ -244,12 +244,22 @@ public final class HighRiskChecks implements Listener {
             }
         }
 
-        // 거의 동시에(0.05초 안에) 서로 다른 대상을 공격
-        if (data.lastAttackTarget != 0 && data.lastAttackTarget != target.getEntityId() && now - data.lastAttackAt < 50) {
-            violations.flag(player, "killaura", 0.5, "0.05초 안에 서로 다른 대상 공격");
+        // 거의 동시에(0.05초 안에) 서로 다른 방향의 대상을 공격.
+        // 몹 농장처럼 앞에 몰려 있는 대상을 빠르게 때리면 두 공격이 같은 서버 틱에 처리될 수 있으므로,
+        // 두 대상의 방향이 45° 이상 벌어졌을 때만 (주변을 돌아가며 때리는 킬오라) 기록한다
+        Vector direction = toTarget.clone().setY(0);
+        if (data.lastAttackTarget != 0 && data.lastAttackTarget != target.getEntityId() && now - data.lastAttackAt < 50
+                && data.lastAttackDirection != null && direction.lengthSquared() > 1e-6
+                && data.lastAttackDirection.lengthSquared() > 1e-6) {
+            double spread = Math.toDegrees(direction.angle(data.lastAttackDirection));
+            if (spread >= 45) {
+                violations.flag(player, "killaura", 0.5,
+                        String.format(Locale.ROOT, "0.05초 안에 서로 다른 대상 공격 (방향 차이 %.0f°)", spread));
+            }
         }
         data.lastAttackTarget = target.getEntityId();
         data.lastAttackAt = now;
+        data.lastAttackDirection = direction;
     }
 
     // ---------------- 자동 다리 놓기 ----------------

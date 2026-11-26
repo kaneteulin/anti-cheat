@@ -53,8 +53,8 @@ public final class CombatChecks implements Listener {
                     String.format(Locale.ROOT, "거리 %.2f칸 / 허용 %.2f칸", distance, limit));
         }
 
-        // 벽 너머 공격: 대상의 어느 부분도 보이지 않음
-        if (!Physics.anyVisible(player, box, null)) {
+        // 벽 너머 공격: 대상의 어느 부분도 보이지 않고, 조준선도 블록에 막힘
+        if (!Physics.anyVisible(player, box, null) && !Physics.crosshairVisible(player, box)) {
             violations.flag(player, "wallhit", 1, "대상 " + target.getType().name().toLowerCase(Locale.ROOT));
         }
 

@@ -135,6 +135,27 @@ final class Physics {
         return false;
     }
 
+    /**
+     * 조준선(보고 있는 방향)이 대상 상자에 닿고, 그 사이에 블록이 없는지.
+     * 바닐라 클라이언트도 조준선으로 공격 대상을 고르므로, 계단 틈처럼 몸 일부만 보여도 공격할 수 있다.
+     * 서버가 아는 시선은 한 틱 늦을 수 있어 상자를 조금 키워서 본다.
+     */
+    static boolean crosshairVisible(Player player, BoundingBox box) {
+        Location eye = player.getEyeLocation();
+        Vector direction = eye.getDirection();
+        RayTraceResult onBox = box.clone().expand(0.2).rayTrace(eye.toVector(), direction, 8.0);
+        if (onBox == null) {
+            return false;
+        }
+        double distance = onBox.getHitPosition().distance(eye.toVector());
+        if (distance < 0.01) {
+            return true;
+        }
+        RayTraceResult block = player.getWorld().rayTraceBlocks(eye, direction, distance,
+                FluidCollisionMode.NEVER, false);
+        return block == null || block.getHitBlock() == null;
+    }
+
     /** 점에서 상자까지 가장 가까운 거리 */
     static double distance(Vector point, BoundingBox box) {
         double dx = Math.max(Math.max(box.getMinX() - point.getX(), 0), point.getX() - box.getMaxX());
